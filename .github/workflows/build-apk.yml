@@ -56,15 +56,18 @@ jobs:
       - name: Apply v5.1 subscription and channel UX
         run: python3 scripts/v51_patch.py
 
+      - name: Apply v5.2 UI and data consistency fixes
+        run: python3 scripts/v52_patch.py
+
       - name: Build debug APK
         run: gradle :app:assembleDebug --stacktrace
 
       - name: Prepare artifact
-        run: cp app/build/outputs/apk/debug/app-debug.apk C16YouTube-v5.1-gallery3d.apk
+        run: cp app/build/outputs/apk/debug/app-debug.apk C16YouTube-v5.2-gallery3d.apk
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: C16YouTube-v5.1-gallery3d-apk
-          path: C16YouTube-v5.1-gallery3d.apk
+          name: C16YouTube-v5.2-gallery3d-apk
+          path: C16YouTube-v5.2-gallery3d.apk
           retention-days: 30
