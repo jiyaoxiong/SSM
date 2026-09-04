@@ -30,11 +30,11 @@ jobs:
         run: gradle :app:assembleDebug --stacktrace
 
       - name: Prepare artifact
-        run: cp app/build/outputs/apk/debug/app-debug.apk C16VideoTest-v0.1.apk
+        run: cp app/build/outputs/apk/debug/app-debug.apk C16VideoTest-v0.2-printspooler.apk
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: C16VideoTest-v0.1-apk
-          path: C16VideoTest-v0.1.apk
+          name: C16VideoTest-v0.2-printspooler-apk
+          path: C16VideoTest-v0.2-printspooler.apk
           retention-days: 30
