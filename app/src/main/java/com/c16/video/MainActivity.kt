@@ -39,6 +39,7 @@ class MainActivity : Activity() {
     private var customViewCallback: WebChromeClient.CustomViewCallback? = null
     private var isDark = true
     private var currentSection = "home"
+    private var watchMode = false
 
     private val prefs by lazy { getSharedPreferences("c16_video", Context.MODE_PRIVATE) }
 
@@ -109,7 +110,6 @@ class MainActivity : Activity() {
         addNav("♡", "我的收藏", "favorites") { showFavorites() }
         addNav("▣", "本地视频", "local") { showMessagePage("本地视频", "本地媒体库将在后续版本加入。") }
         addNav("⚙", "设置", "settings") { showSettings() }
-
         sidebar.addView(View(this), LinearLayout.LayoutParams(-1, 0, 1f))
     }
 
@@ -189,7 +189,7 @@ class MainActivity : Activity() {
             settings.loadsImagesAutomatically = true
             settings.useWideViewPort = true
             settings.loadWithOverviewMode = true
-            settings.textZoom = 122
+            settings.textZoom = 126
             settings.allowContentAccess = true
             settings.allowFileAccess = false
             settings.setSupportZoom(false)
@@ -203,8 +203,10 @@ class MainActivity : Activity() {
 
                 override fun onPageFinished(view: WebView?, url: String?) {
                     url ?: return
-                    if (url.contains("youtube.com")) tuneYouTubeLayout(view)
-                    if (url.contains("youtube.com/watch") || url.contains("youtu.be/")) captureHistory(view, url)
+                    val isWatch = url.contains("youtube.com/watch") || url.contains("youtu.be/")
+                    setWatchMode(isWatch)
+                    if (url.contains("youtube.com")) tuneYouTubeLayout(view, isWatch)
+                    if (isWatch) captureHistory(view, url)
                     updateFavoriteState(url)
                     updateLoginState(url)
                     CookieManager.getInstance().flush()
@@ -237,27 +239,51 @@ class MainActivity : Activity() {
         mainColumn.addView(webView, LinearLayout.LayoutParams(-1, 0, 1f).apply { setMargins(18, 0, 22, 18) })
     }
 
-    private fun tuneYouTubeLayout(view: WebView?) {
+    private fun setWatchMode(enabled: Boolean) {
+        if (watchMode == enabled) return
+        watchMode = enabled
+        sidebar.visibility = if (enabled) View.GONE else View.VISIBLE
+        val topParams = topBar.layoutParams as LinearLayout.LayoutParams
+        topParams.height = if (enabled) 104 else 118
+        topBar.layoutParams = topParams
+        searchBox.hint = if (enabled) "搜索其他视频" else "搜索 YouTube，发现更大的世界"
+    }
+
+    private fun tuneYouTubeLayout(view: WebView?, watch: Boolean) {
+        val watchCss = if (watch) """
+            ytd-masthead{display:none!important}
+            ytd-app #content{margin-top:0!important}
+            ytd-watch-flexy #columns{display:grid!important;grid-template-columns:minmax(0,1fr) 500px!important;gap:24px!important;max-width:none!important;margin:0 20px!important;padding:0!important}
+            ytd-watch-flexy #primary{width:auto!important;min-width:0!important;max-width:none!important;padding:0!important;margin:0!important}
+            ytd-watch-flexy #secondary{width:500px!important;min-width:500px!important;max-width:500px!important;padding:0!important;margin:0!important}
+            #player-container-outer,#player-container-inner,#movie_player{border-radius:22px!important;overflow:hidden!important}
+            ytd-watch-metadata #title h1 yt-formatted-string{font-size:26px!important;line-height:1.3!important;font-weight:700!important}
+            ytd-watch-metadata #owner-sub-count,#info span,#description-inline-expander{font-size:16px!important}
+            #secondary ytd-watch-next-secondary-results-renderer #items{display:flex!important;flex-direction:column!important;gap:14px!important}
+            #secondary ytd-compact-video-renderer{display:block!important;width:100%!important;max-width:100%!important;margin:0 0 14px!important}
+            #secondary ytd-compact-video-renderer #dismissible{display:grid!important;grid-template-columns:210px minmax(0,1fr)!important;gap:12px!important;width:100%!important;align-items:start!important}
+            #secondary ytd-thumbnail.ytd-compact-video-renderer{width:210px!important;min-width:210px!important;height:118px!important;margin:0!important}
+            #secondary ytd-compact-video-renderer #details{min-width:0!important;padding:0!important;margin:0!important}
+            #secondary ytd-compact-video-renderer #video-title{font-size:17px!important;line-height:1.28!important;max-height:3.84em!important;font-weight:650!important}
+            #secondary ytd-compact-video-renderer #metadata-line{font-size:13px!important;line-height:1.35!important}
+            #secondary ytd-rich-grid-renderer #contents{display:block!important}
+            #secondary ytd-rich-item-renderer{width:100%!important;max-width:100%!important;margin:0 0 14px!important}
+            #secondary ytd-reel-shelf-renderer,#secondary ytd-rich-section-renderer{display:none!important}
+        """ else """
+            ytd-rich-grid-renderer{--ytd-rich-grid-items-per-row:4!important;--ytd-rich-grid-posts-per-row:4!important}
+            ytd-rich-item-renderer{min-width:0!important}
+            #video-title{font-size:19px!important;line-height:1.36!important;font-weight:650!important}
+            #metadata-line,.ytd-video-meta-block{font-size:14px!important}
+        """
+
         val js = """
             (function(){
               var old=document.getElementById('c16-tune-style'); if(old) old.remove();
               var s=document.createElement('style'); s.id='c16-tune-style';
               s.textContent=`
-                html{font-size:18px!important}
+                html{font-size:19px!important}
                 body{overflow-x:hidden!important}
-                ytd-rich-grid-renderer{--ytd-rich-grid-items-per-row:4!important;--ytd-rich-grid-posts-per-row:4!important}
-                ytd-rich-item-renderer{min-width:0!important}
-                #video-title{font-size:18px!important;line-height:1.35!important;font-weight:600!important}
-                #metadata-line,.ytd-video-meta-block{font-size:14px!important}
-                ytd-watch-flexy[flexy] #primary{min-width:0!important}
-                ytd-watch-flexy[flexy] #secondary{width:520px!important;min-width:520px!important;max-width:520px!important;padding-left:20px!important}
-                ytd-watch-next-secondary-results-renderer #items{display:block!important}
-                ytd-compact-video-renderer{display:block!important;width:100%!important;max-width:100%!important;margin-bottom:16px!important}
-                ytd-compact-video-renderer #dismissible{display:flex!important;width:100%!important}
-                ytd-thumbnail.ytd-compact-video-renderer{width:220px!important;min-width:220px!important;height:124px!important}
-                ytd-compact-video-renderer #details{min-width:0!important;padding-left:12px!important}
-                ytd-compact-video-renderer #video-title{font-size:17px!important;line-height:1.35!important;max-height:3.9em!important}
-                ytd-compact-video-renderer #metadata-line{font-size:13px!important}
+                $watchCss
               `;
               document.head.appendChild(s);
             })();
@@ -296,6 +322,7 @@ class MainActivity : Activity() {
     }
 
     private fun showHome() {
+        setWatchMode(false)
         currentSection = "home"
         refreshNavStyles()
         webView.loadDataWithBaseURL("https://c16.local/", homeHtml(), "text/html", "UTF-8", null)
@@ -331,10 +358,11 @@ class MainActivity : Activity() {
         <a class='card' href='https://www.youtube.com/results?search_query=movie+trailer'><div class='thumb movie'>🎬</div><div class='meta'><div class='title'>影视</div><div class='sub'>预告 · 影评 · 访谈</div></div></a>
         <a class='card' href='https://www.youtube.com/results?search_query=street+food'><div class='thumb food'>🍜</div><div class='meta'><div class='title'>美食</div><div class='sub'>街头美食 · 烹饪 · 探店</div></div></a>
         <a class='card' href='https://www.youtube.com/results?search_query=world+news'><div class='thumb news'>🌍</div><div class='meta'><div class='title'>世界资讯</div><div class='sub'>新闻 · 访谈 · 深度内容</div></div></a>
-        </div><div class='foot'>C16 Video v1.3 · 统一 YouTube 显示比例 · 视频化历史记录 · 播放页单列推荐</div></body></html>"""
+        </div><div class='foot'>C16 Video v1.4 · 播放模式改为大画面 + 右侧单列推荐 · 历史记录视频化</div></body></html>"""
     }
 
     private fun showHistory() {
+        setWatchMode(false)
         val urls = prefs.getStringSet("history", emptySet())?.toList().orEmpty().reversed()
         showHistoryPage(urls)
     }
@@ -362,6 +390,7 @@ class MainActivity : Activity() {
     }
 
     private fun showFavorites() {
+        setWatchMode(false)
         showListPage("我的收藏", prefs.getStringSet("favorites", emptySet())?.toList().orEmpty().reversed(), "还没有收藏内容。播放或打开页面后点右上角 ♡。")
     }
 
@@ -383,7 +412,8 @@ class MainActivity : Activity() {
     }
 
     private fun showSettings() {
-        showMessagePage("设置", "当前主题：${if (isDark) "深色" else "浅色"}。点击右上角 ☀ / ☾ 可随时切换。\n\nYouTube 页面已针对 C16 放大并统一布局；播放页右侧推荐强制单列显示。\n\nC16 Video v1.3\n宿主包：com.android.gallery3d\n版本号：40035")
+        setWatchMode(false)
+        showMessagePage("设置", "当前主题：${if (isDark) "深色" else "浅色"}。点击右上角 ☀ / ☾ 可随时切换。\n\nYouTube 普通页面统一放大；播放时自动进入宽屏模式，隐藏左侧栏，主视频放大，右侧推荐强制单列。\n\n历史记录以视频封面卡片显示。\n\nC16 Video v1.4\n宿主包：com.android.gallery3d\n版本号：40036")
     }
 
     private fun showMessagePage(title: String, message: String) {
