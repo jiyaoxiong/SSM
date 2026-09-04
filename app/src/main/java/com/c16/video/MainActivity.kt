@@ -1,4 +1,4 @@
-package com.android.printspooler
+package com.android.gallery3d
 
 import android.app.Activity
 import android.graphics.Color
@@ -75,7 +75,7 @@ class MainActivity : Activity() {
         panel.addView(title, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 90))
 
         val info = TextView(this).apply {
-            text = "零跑 C16 · Android 12 · SA8295P\n2560×1440 · WebView 126\n测试版 v0.2"
+            text = "零跑 C16 · Android 12 · SA8295P\n2560×1440 · WebView 126\nGallery3D 宿主测试 v0.3"
             setTextColor(Color.LTGRAY)
             textSize = 24f
             setLineSpacing(8f, 1f)
