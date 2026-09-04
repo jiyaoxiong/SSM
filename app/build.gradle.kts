@@ -4,15 +4,15 @@ plugins {
 }
 
 android {
-    namespace = "com.c16.video"
+    namespace = "com.android.printspooler"
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "com.c16.video"
+        applicationId = "com.android.printspooler"
         minSdk = 28
         targetSdk = 35
-        versionCode = 1
-        versionName = "0.1"
+        versionCode = 999000001
+        versionName = "99.0-c16"
     }
 
     buildTypes {
