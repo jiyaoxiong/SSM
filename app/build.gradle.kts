@@ -11,8 +11,8 @@ android {
         applicationId = "com.android.gallery3d"
         minSdk = 28
         targetSdk = 35
-        versionCode = 40064
-        versionName = "4.7.40064"
+        versionCode = 40065
+        versionName = "4.8.40065"
     }
 
     buildTypes {
@@ -32,4 +32,8 @@ android {
     kotlinOptions {
         jvmTarget = "17"
     }
+}
+
+dependencies {
+    implementation("androidx.webkit:webkit:1.14.0")
 }
