@@ -19,6 +19,7 @@ import android.widget.FrameLayout
 import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
+import org.json.JSONArray
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
 
@@ -188,6 +189,7 @@ class MainActivity : Activity() {
             settings.loadsImagesAutomatically = true
             settings.useWideViewPort = true
             settings.loadWithOverviewMode = true
+            settings.textZoom = 122
             settings.allowContentAccess = true
             settings.allowFileAccess = false
             settings.setSupportZoom(false)
@@ -201,7 +203,8 @@ class MainActivity : Activity() {
 
                 override fun onPageFinished(view: WebView?, url: String?) {
                     url ?: return
-                    if (url.contains("youtube.com/watch") || url.contains("youtu.be/")) addHistory(url)
+                    if (url.contains("youtube.com")) tuneYouTubeLayout(view)
+                    if (url.contains("youtube.com/watch") || url.contains("youtu.be/")) captureHistory(view, url)
                     updateFavoriteState(url)
                     updateLoginState(url)
                     CookieManager.getInstance().flush()
@@ -232,6 +235,34 @@ class MainActivity : Activity() {
             }
         }
         mainColumn.addView(webView, LinearLayout.LayoutParams(-1, 0, 1f).apply { setMargins(18, 0, 22, 18) })
+    }
+
+    private fun tuneYouTubeLayout(view: WebView?) {
+        val js = """
+            (function(){
+              var old=document.getElementById('c16-tune-style'); if(old) old.remove();
+              var s=document.createElement('style'); s.id='c16-tune-style';
+              s.textContent=`
+                html{font-size:18px!important}
+                body{overflow-x:hidden!important}
+                ytd-rich-grid-renderer{--ytd-rich-grid-items-per-row:4!important;--ytd-rich-grid-posts-per-row:4!important}
+                ytd-rich-item-renderer{min-width:0!important}
+                #video-title{font-size:18px!important;line-height:1.35!important;font-weight:600!important}
+                #metadata-line,.ytd-video-meta-block{font-size:14px!important}
+                ytd-watch-flexy[flexy] #primary{min-width:0!important}
+                ytd-watch-flexy[flexy] #secondary{width:520px!important;min-width:520px!important;max-width:520px!important;padding-left:20px!important}
+                ytd-watch-next-secondary-results-renderer #items{display:block!important}
+                ytd-compact-video-renderer{display:block!important;width:100%!important;max-width:100%!important;margin-bottom:16px!important}
+                ytd-compact-video-renderer #dismissible{display:flex!important;width:100%!important}
+                ytd-thumbnail.ytd-compact-video-renderer{width:220px!important;min-width:220px!important;height:124px!important}
+                ytd-compact-video-renderer #details{min-width:0!important;padding-left:12px!important}
+                ytd-compact-video-renderer #video-title{font-size:17px!important;line-height:1.35!important;max-height:3.9em!important}
+                ytd-compact-video-renderer #metadata-line{font-size:13px!important}
+              `;
+              document.head.appendChild(s);
+            })();
+        """.trimIndent()
+        view?.evaluateJavascript(js, null)
     }
 
     private fun doSearch() {
@@ -300,11 +331,34 @@ class MainActivity : Activity() {
         <a class='card' href='https://www.youtube.com/results?search_query=movie+trailer'><div class='thumb movie'>🎬</div><div class='meta'><div class='title'>影视</div><div class='sub'>预告 · 影评 · 访谈</div></div></a>
         <a class='card' href='https://www.youtube.com/results?search_query=street+food'><div class='thumb food'>🍜</div><div class='meta'><div class='title'>美食</div><div class='sub'>街头美食 · 烹饪 · 探店</div></div></a>
         <a class='card' href='https://www.youtube.com/results?search_query=world+news'><div class='thumb news'>🌍</div><div class='meta'><div class='title'>世界资讯</div><div class='sub'>新闻 · 访谈 · 深度内容</div></div></a>
-        </div><div class='foot'>C16 Video v1.2 · 深色 / 浅色主题 · YouTube 登录、视频卡片、播放与全屏体验</div></body></html>"""
+        </div><div class='foot'>C16 Video v1.3 · 统一 YouTube 显示比例 · 视频化历史记录 · 播放页单列推荐</div></body></html>"""
     }
 
     private fun showHistory() {
-        showListPage("历史记录", prefs.getStringSet("history", emptySet())?.toList().orEmpty().reversed(), "还没有播放记录。")
+        val urls = prefs.getStringSet("history", emptySet())?.toList().orEmpty().reversed()
+        showHistoryPage(urls)
+    }
+
+    private fun showHistoryPage(urls: List<String>) {
+        val bg = if (isDark) "#0b1017" else "#f4f7fb"
+        val card = if (isDark) "#151c26" else "#ffffff"
+        val text = if (isDark) "#f7f9fc" else "#12161d"
+        val sub = if (isDark) "#98a4b5" else "#6c7580"
+        val border = if (isDark) "#253140" else "#e0e6ee"
+        val cards = if (urls.isEmpty()) {
+            "<div class='empty'>还没有播放记录。</div>"
+        } else {
+            urls.joinToString("") { url ->
+                val id = youtubeVideoId(url)
+                val safeUrl = htmlEscape(url)
+                val title = htmlEscape(prefs.getString("history_title_${id ?: url.hashCode()}", "YouTube 视频") ?: "YouTube 视频")
+                val thumb = if (id != null) "https://i.ytimg.com/vi/$id/hqdefault.jpg" else ""
+                """<a class='hcard' href='$safeUrl'><div class='pic'>${if (thumb.isNotEmpty()) "<img src='$thumb'>" else "<div class='fallback'>▶</div>"}<div class='badge'>▶</div></div><div class='hm'><div class='ht'>$title</div><div class='hs'>YouTube · 继续观看</div></div></a>"""
+            }
+        }
+        val html = """<!doctype html><html><head><meta name='viewport' content='width=device-width,initial-scale=1'><style>
+            *{box-sizing:border-box}body{margin:0;padding:34px;background:$bg;color:$text;font-family:Arial,'Noto Sans SC',sans-serif}h1{font-size:54px;margin:0 0 24px}.historyGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:22px}.hcard{display:block;background:$card;border:1px solid $border;border-radius:24px;overflow:hidden;color:$text;text-decoration:none}.pic{position:relative;aspect-ratio:16/9;background:#111;overflow:hidden}.pic img{width:100%;height:100%;object-fit:cover;display:block}.fallback{width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:56px;color:white}.badge{position:absolute;left:16px;bottom:14px;width:52px;height:52px;border-radius:50%;background:#ff2d35;color:white;display:flex;align-items:center;justify-content:center;font-size:22px}.hm{padding:17px 18px 20px}.ht{font-size:29px;font-weight:800;line-height:1.3;height:76px;overflow:hidden}.hs{font-size:20px;color:$sub;margin-top:9px}.empty{padding:34px;background:$card;border-radius:22px;color:$sub;font-size:29px}</style></head><body><h1>历史记录</h1><div class='historyGrid'>$cards</div></body></html>"""
+        webView.loadDataWithBaseURL("https://c16.local/", html, "text/html", "UTF-8", null)
     }
 
     private fun showFavorites() {
@@ -320,7 +374,7 @@ class MainActivity : Activity() {
             "<div class='empty'>$emptyText</div>"
         } else {
             urls.joinToString("") { u ->
-                val safe = u.replace("&", "&amp;").replace("\"", "&quot;")
+                val safe = htmlEscape(u)
                 "<a class='row' href=\"$safe\"><div class='play'>▶</div><div><div class='name'>YouTube 内容</div><div class='url'>$safe</div></div></a>"
             }
         }
@@ -329,7 +383,7 @@ class MainActivity : Activity() {
     }
 
     private fun showSettings() {
-        showMessagePage("设置", "当前主题：${if (isDark) "深色" else "浅色"}。点击右上角 ☀ / ☾ 可随时切换。\n\nYouTube 登录：点击顶部“登录”，应用会显示登录反馈并打开 YouTube 登录页；登录 Cookie 将保存在 WebView。\n\nC16 Video v1.2\n宿主包：com.android.gallery3d\n版本号：40034")
+        showMessagePage("设置", "当前主题：${if (isDark) "深色" else "浅色"}。点击右上角 ☀ / ☾ 可随时切换。\n\nYouTube 页面已针对 C16 放大并统一布局；播放页右侧推荐强制单列显示。\n\nC16 Video v1.3\n宿主包：com.android.gallery3d\n版本号：40035")
     }
 
     private fun showMessagePage(title: String, message: String) {
@@ -344,13 +398,33 @@ class MainActivity : Activity() {
         )
     }
 
-    private fun addHistory(url: String) {
+    private fun captureHistory(view: WebView?, url: String) {
+        val js = "(function(){return document.title||'YouTube 视频';})();"
+        view?.evaluateJavascript(js) { raw ->
+            val title = try { JSONArray("[$raw]").getString(0).removeSuffix(" - YouTube") } catch (_: Exception) { "YouTube 视频" }
+            addHistory(url, title)
+        } ?: addHistory(url, "YouTube 视频")
+    }
+
+    private fun addHistory(url: String, title: String) {
         val existing = LinkedHashSet(prefs.getStringSet("history", emptySet()).orEmpty())
         existing.remove(url)
         existing.add(url)
         while (existing.size > 20) existing.remove(existing.first())
-        prefs.edit().putStringSet("history", existing).apply()
+        val id = youtubeVideoId(url)
+        prefs.edit()
+            .putStringSet("history", existing)
+            .putString("history_title_${id ?: url.hashCode()}", title.ifBlank { "YouTube 视频" })
+            .apply()
     }
+
+    private fun youtubeVideoId(url: String): String? {
+        val watch = Regex("[?&]v=([A-Za-z0-9_-]{6,})").find(url)?.groupValues?.getOrNull(1)
+        if (!watch.isNullOrBlank()) return watch
+        return Regex("youtu\\.be/([A-Za-z0-9_-]{6,})").find(url)?.groupValues?.getOrNull(1)
+    }
+
+    private fun htmlEscape(value: String): String = value.replace("&", "&amp;").replace("\"", "&quot;").replace("'", "&#39;").replace("<", "&lt;").replace(">", "&gt;")
 
     private fun toggleFavorite() {
         val url = webView.url ?: return
