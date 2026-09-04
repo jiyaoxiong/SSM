@@ -11,8 +11,8 @@ android {
         applicationId = "com.android.gallery3d"
         minSdk = 28
         targetSdk = 35
-        versionCode = 40048
-        versionName = "3.0.40048"
+        versionCode = 40049
+        versionName = "3.1.40049"
     }
 
     buildTypes {
