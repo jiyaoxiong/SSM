@@ -11,7 +11,7 @@
     <application
         android:allowBackup="false"
         android:hardwareAccelerated="true"
-        android:label="C16 Video Test"
+        android:label="C16 Video"
         android:supportsRtl="true"
         android:theme="@style/Theme.C16Video"
         android:usesCleartextTraffic="false">
