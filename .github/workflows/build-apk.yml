@@ -44,16 +44,20 @@ jobs:
         run: python3 scripts/v33_patch.py
       - name: Apply v3.5 driving UI and smart recommendation patch
         run: python3 scripts/v35_patch.py
+      - name: Apply v3.6 channel, subscription and comments patch
+        run: python3 scripts/v36_patch.py
+      - name: Apply v3.6 player initialization fix
+        run: python3 scripts/v36_fix.py
 
       - name: Build debug APK
         run: gradle :app:assembleDebug --stacktrace
 
       - name: Prepare artifact
-        run: cp app/build/outputs/apk/debug/app-debug.apk C16YouTube-v3.5-gallery3d.apk
+        run: cp app/build/outputs/apk/debug/app-debug.apk C16YouTube-v3.6-gallery3d.apk
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: C16YouTube-v3.5-gallery3d-apk
-          path: C16YouTube-v3.5-gallery3d.apk
+          name: C16YouTube-v3.6-gallery3d-apk
+          path: C16YouTube-v3.6-gallery3d.apk
           retention-days: 30
