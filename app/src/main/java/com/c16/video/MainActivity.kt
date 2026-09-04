@@ -18,6 +18,7 @@ import android.widget.EditText
 import android.widget.FrameLayout
 import android.widget.LinearLayout
 import android.widget.TextView
+import android.widget.Toast
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
 
@@ -108,7 +109,6 @@ class MainActivity : Activity() {
         addNav("▣", "本地视频", "local") { showMessagePage("本地视频", "本地媒体库将在后续版本加入。") }
         addNav("⚙", "设置", "settings") { showSettings() }
 
-        // 仅保留留白，不再显示芯片型号和分辨率信息
         sidebar.addView(View(this), LinearLayout.LayoutParams(-1, 0, 1f))
     }
 
@@ -159,7 +159,7 @@ class MainActivity : Activity() {
             setPadding(18, 0, 18, 0)
             setOnClickListener { openYouTubeLogin() }
         }
-        topBar.addView(loginButton, LinearLayout.LayoutParams(118, 72).apply { setMargins(8, 0, 8, 0) })
+        topBar.addView(loginButton, LinearLayout.LayoutParams(132, 72).apply { setMargins(8, 0, 8, 0) })
 
         favoriteButton = topAction("♡") { toggleFavorite() }
         topBar.addView(favoriteButton)
@@ -198,10 +198,13 @@ class MainActivity : Activity() {
 
             webViewClient = object : WebViewClient() {
                 override fun shouldOverrideUrlLoading(view: WebView?, request: WebResourceRequest?): Boolean = false
+
                 override fun onPageFinished(view: WebView?, url: String?) {
                     url ?: return
                     if (url.contains("youtube.com/watch") || url.contains("youtu.be/")) addHistory(url)
                     updateFavoriteState(url)
+                    updateLoginState(url)
+                    CookieManager.getInstance().flush()
                 }
             }
 
@@ -243,7 +246,17 @@ class MainActivity : Activity() {
     private fun openYouTubeLogin() {
         currentSection = "youtube"
         refreshNavStyles()
-        openUrl("https://accounts.google.com/ServiceLogin?service=youtube&continue=https%3A%2F%2Fwww.youtube.com%2F")
+        loginButton.text = "登录中…"
+        Toast.makeText(this, "正在打开 YouTube 登录页面", Toast.LENGTH_SHORT).show()
+        webView.requestFocus(View.FOCUS_DOWN)
+        webView.loadUrl("https://www.youtube.com/signin?app=desktop&next=%2F")
+    }
+
+    private fun updateLoginState(url: String) {
+        if (!::loginButton.isInitialized) return
+        val cookies = CookieManager.getInstance().getCookie("https://www.youtube.com/").orEmpty()
+        val likelySignedIn = cookies.contains("SAPISID=") || cookies.contains("__Secure-3PAPISID=") || cookies.contains("LOGIN_INFO=")
+        loginButton.text = if (likelySignedIn) "账号" else if (url.contains("accounts.google.com")) "登录中…" else "登录"
     }
 
     private fun openUrl(url: String) {
@@ -266,10 +279,19 @@ class MainActivity : Activity() {
         val border = if (isDark) "#253140" else "#e0e6ee"
 
         return """<!doctype html><html><head><meta name='viewport' content='width=device-width,initial-scale=1'><style>
-        *{box-sizing:border-box}body{margin:0;padding:22px 22px 40px;background:$bg;color:$text;font-family:Arial,'Noto Sans SC',sans-serif}.chips{display:flex;gap:14px;margin-bottom:20px}.chip{padding:15px 28px;border-radius:28px;background:$card2;color:$text;text-decoration:none;font-size:27px}.chip.hot{background:#ff2d35;color:white;font-weight:800}.hero{height:360px;border-radius:30px;overflow:hidden;position:relative;background:linear-gradient(120deg,#0f6eb8,#14243f 65%,#e28459);padding:42px;border:1px solid $border;margin-bottom:28px}.hero:after{content:'';position:absolute;inset:0;background:radial-gradient(circle at 74% 36%,rgba(255,255,255,.20),transparent 24%),linear-gradient(90deg,rgba(0,0,0,.12),rgba(0,0,0,.38));pointer-events:none}.hero h1{font-size:70px;margin:0 0 14px;position:relative;z-index:1}.hero p{font-size:31px;line-height:1.5;color:#e8f1ff;position:relative;z-index:1;max-width:1180px}.hero .go{display:inline-block;margin-top:28px;background:#fff;color:#121722;padding:18px 34px;border-radius:30px;font-size:27px;text-decoration:none;position:relative;z-index:1;font-weight:800}h2{font-size:38px;margin:28px 0 18px}.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:20px}.card{background:$card;border:1px solid $border;border-radius:24px;padding:0;overflow:hidden;text-decoration:none;color:$text;min-height:235px;box-shadow:0 8px 24px rgba(0,0,0,.08)}.thumb{height:142px;background:linear-gradient(135deg,#2b8bd7,#0a4a86);display:flex;align-items:flex-end;padding:16px;font-size:46px}.thumb.music{background:linear-gradient(135deg,#5d3fd3,#e96fa8)}.thumb.travel{background:linear-gradient(135deg,#0e8d86,#55bfa9)}.thumb.car{background:linear-gradient(135deg,#626c78,#263340)}.thumb.news{background:linear-gradient(135deg,#d25b35,#7a1c2c)}.thumb.movie{background:linear-gradient(135deg,#534197,#1a2344)}.thumb.food{background:linear-gradient(135deg,#d68b33,#6b3824)}.thumb.live{background:linear-gradient(135deg,#d31e32,#661827)}.meta{padding:16px 18px}.title{font-size:29px;font-weight:800;margin-bottom:8px}.sub{font-size:22px;color:$sub}.foot{margin-top:30px;padding:20px 24px;background:$card;border:1px solid $border;border-radius:20px;color:$sub;font-size:22px}</style></head><body>
+        *{box-sizing:border-box}body{margin:0;padding:22px 22px 44px;background:$bg;color:$text;font-family:Arial,'Noto Sans SC',sans-serif}.chips{display:flex;gap:14px;margin-bottom:20px;flex-wrap:wrap}.chip{padding:15px 28px;border-radius:28px;background:$card2;color:$text;text-decoration:none;font-size:27px}.chip.hot{background:#ff2d35;color:white;font-weight:800}.hero{min-height:430px;border-radius:32px;overflow:hidden;position:relative;background:linear-gradient(118deg,#0b69b8 0%,#10233f 58%,#c86a48 100%);padding:48px 52px;border:1px solid $border;margin-bottom:32px;display:flex;align-items:center}.hero:after{content:'';position:absolute;inset:0;background:radial-gradient(circle at 78% 35%,rgba(255,255,255,.22),transparent 26%),linear-gradient(90deg,rgba(0,0,0,.08),rgba(0,0,0,.36));pointer-events:none}.heroContent{position:relative;z-index:1;max-width:1220px}.hero h1{font-size:68px;line-height:1.12;margin:0 0 22px}.hero p{font-size:28px;line-height:1.55;color:#eef5ff;margin:0;max-width:1080px}.hero .go{display:inline-block;margin-top:28px;background:#fff;color:#121722;padding:18px 34px;border-radius:30px;font-size:26px;text-decoration:none;font-weight:800}.sectionHead{display:flex;align-items:end;justify-content:space-between;margin:32px 0 18px}.sectionHead h2{font-size:38px;margin:0}.sectionHead span{font-size:21px;color:$sub}.videoGrid{display:grid;grid-template-columns:repeat(4,1fr);gap:20px}.videoCard{display:block;background:$card;border:1px solid $border;border-radius:24px;overflow:hidden;text-decoration:none;color:$text;box-shadow:0 8px 24px rgba(0,0,0,.08)}.videoThumb{position:relative;aspect-ratio:16/9;background:#111;overflow:hidden}.videoThumb img{width:100%;height:100%;object-fit:cover;display:block}.playBadge{position:absolute;left:18px;bottom:16px;width:56px;height:56px;border-radius:50%;background:rgba(255,30,45,.94);display:flex;align-items:center;justify-content:center;color:#fff;font-size:23px;padding-left:4px}.videoMeta{padding:16px 18px 18px}.videoTitle{font-size:27px;font-weight:800;line-height:1.28;min-height:69px}.videoSub{font-size:20px;color:$sub;margin-top:9px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:20px}.card{background:$card;border:1px solid $border;border-radius:24px;padding:0;overflow:hidden;text-decoration:none;color:$text;min-height:255px;box-shadow:0 8px 24px rgba(0,0,0,.08)}.thumb{height:150px;background:linear-gradient(135deg,#2b8bd7,#0a4a86);display:flex;align-items:flex-end;padding:16px;font-size:46px}.thumb.music{background:linear-gradient(135deg,#5d3fd3,#e96fa8)}.thumb.travel{background:linear-gradient(135deg,#0e8d86,#55bfa9)}.thumb.car{background:linear-gradient(135deg,#626c78,#263340)}.thumb.news{background:linear-gradient(135deg,#d25b35,#7a1c2c)}.thumb.movie{background:linear-gradient(135deg,#534197,#1a2344)}.thumb.food{background:linear-gradient(135deg,#d68b33,#6b3824)}.thumb.live{background:linear-gradient(135deg,#d31e32,#661827)}.meta{padding:17px 18px 20px}.title{font-size:29px;font-weight:800;margin-bottom:9px;line-height:1.25}.sub{font-size:21px;line-height:1.38;color:$sub}.foot{margin-top:32px;padding:20px 24px;background:$card;border:1px solid $border;border-radius:20px;color:$sub;font-size:21px}</style></head><body>
         <div class='chips'><a class='chip hot' href='https://www.youtube.com/'>推荐</a><a class='chip' href='https://www.youtube.com/results?search_query=music'>音乐</a><a class='chip' href='https://www.youtube.com/results?search_query=travel+4k'>旅行</a><a class='chip' href='https://www.youtube.com/results?search_query=technology'>科技</a><a class='chip' href='https://www.youtube.com/results?search_query=cars'>汽车</a><a class='chip' href='https://www.youtube.com/results?search_query=food'>美食</a><a class='chip' href='https://www.youtube.com/feed/trending'>热门</a></div>
-        <section class='hero'><h1>去看更大的世界</h1><p>让像素、声音与网络在一块屏幕上汇流，把每一次播放都变成通往世界的一扇窗口。</p><a class='go' href='https://www.youtube.com/'>开始探索 YouTube ▶</a></section>
-        <h2>为你准备</h2><div class='grid'>
+        <section class='hero'><div class='heroContent'><h1>去看更大的世界</h1><p>光影在屏幕上流动，声音沿旅途延伸。让每一次播放，都成为车窗之外另一段风景的开始。</p><a class='go' href='https://www.youtube.com/'>开始探索 YouTube ▶</a></div></section>
+
+        <div class='sectionHead'><h2>YouTube 精选</h2><span>点击封面即可播放 · 支持全屏</span></div>
+        <div class='videoGrid'>
+          <a class='videoCard' href='https://www.youtube.com/watch?v=jNQXAC9IVRw'><div class='videoThumb'><img src='https://i.ytimg.com/vi/jNQXAC9IVRw/hqdefault.jpg'><div class='playBadge'>▶</div></div><div class='videoMeta'><div class='videoTitle'>Me at the zoo · YouTube 经典视频</div><div class='videoSub'>YouTube · 直接播放测试</div></div></a>
+          <a class='videoCard' href='https://www.youtube.com/watch?v=M7lc1UVf-VE'><div class='videoThumb'><img src='https://i.ytimg.com/vi/M7lc1UVf-VE/hqdefault.jpg'><div class='playBadge'>▶</div></div><div class='videoMeta'><div class='videoTitle'>YouTube Player Demo · 播放能力验证</div><div class='videoSub'>YouTube Developers</div></div></a>
+          <a class='videoCard' href='https://www.youtube.com/watch?v=dQw4w9WgXcQ'><div class='videoThumb'><img src='https://i.ytimg.com/vi/dQw4w9WgXcQ/hqdefault.jpg'><div class='playBadge'>▶</div></div><div class='videoMeta'><div class='videoTitle'>音乐精选 · 经典流行视频</div><div class='videoSub'>Music · Full screen ready</div></div></a>
+          <a class='videoCard' href='https://www.youtube.com/watch?v=kJQP7kiw5Fk'><div class='videoThumb'><img src='https://i.ytimg.com/vi/kJQP7kiw5Fk/hqdefault.jpg'><div class='playBadge'>▶</div></div><div class='videoMeta'><div class='videoTitle'>全球热门音乐 · 沉浸大屏体验</div><div class='videoSub'>Music · YouTube</div></div></a>
+        </div>
+
+        <div class='sectionHead'><h2>为你准备</h2><span>按兴趣快速进入 YouTube</span></div><div class='grid'>
         <a class='card' href='https://www.youtube.com/results?search_query=Switzerland+4K'><div class='thumb travel'>🏔️</div><div class='meta'><div class='title'>4K 风景与旅行</div><div class='sub'>雪山 · 湖泊 · 城市漫游</div></div></a>
         <a class='card' href='https://www.youtube.com/results?search_query=lofi+music'><div class='thumb music'>🎧</div><div class='meta'><div class='title'>音乐与氛围</div><div class='sub'>Lo-fi · Jazz · Relax</div></div></a>
         <a class='card' href='https://www.youtube.com/results?search_query=Leapmotor+C16'><div class='thumb car'>🚙</div><div class='meta'><div class='title'>零跑 C16</div><div class='sub'>评测 · 技巧 · 用车分享</div></div></a>
@@ -278,7 +300,7 @@ class MainActivity : Activity() {
         <a class='card' href='https://www.youtube.com/results?search_query=movie+trailer'><div class='thumb movie'>🎬</div><div class='meta'><div class='title'>影视</div><div class='sub'>预告 · 影评 · 访谈</div></div></a>
         <a class='card' href='https://www.youtube.com/results?search_query=street+food'><div class='thumb food'>🍜</div><div class='meta'><div class='title'>美食</div><div class='sub'>街头美食 · 烹饪 · 探店</div></div></a>
         <a class='card' href='https://www.youtube.com/results?search_query=world+news'><div class='thumb news'>🌍</div><div class='meta'><div class='title'>世界资讯</div><div class='sub'>新闻 · 访谈 · 深度内容</div></div></a>
-        </div><div class='foot'>C16 Video v1.1 · 深色 / 浅色主题可切换 · YouTube 登录、播放与全屏体验</div></body></html>"""
+        </div><div class='foot'>C16 Video v1.2 · 深色 / 浅色主题 · YouTube 登录、视频卡片、播放与全屏体验</div></body></html>"""
     }
 
     private fun showHistory() {
@@ -307,7 +329,7 @@ class MainActivity : Activity() {
     }
 
     private fun showSettings() {
-        showMessagePage("设置", "当前主题：${if (isDark) "深色" else "浅色"}。点击右上角 ☀ / ☾ 可随时切换。\n\nYouTube 登录：点击顶部“登录”，登录成功后 Cookie 会由 WebView 保存。\n\nC16 Video v1.1\n宿主包：com.android.gallery3d\n版本号：40033")
+        showMessagePage("设置", "当前主题：${if (isDark) "深色" else "浅色"}。点击右上角 ☀ / ☾ 可随时切换。\n\nYouTube 登录：点击顶部“登录”，应用会显示登录反馈并打开 YouTube 登录页；登录 Cookie 将保存在 WebView。\n\nC16 Video v1.2\n宿主包：com.android.gallery3d\n版本号：40034")
     }
 
     private fun showMessagePage(title: String, message: String) {
