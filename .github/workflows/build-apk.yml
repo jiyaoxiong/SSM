@@ -26,52 +26,15 @@ jobs:
         with:
           gradle-version: '8.9'
 
-      - name: Apply v2.6 UI patch
-        run: python3 scripts/v26_patch.py
-      - name: Apply v2.7 loading fix
-        run: python3 scripts/v27_patch.py
-      - name: Apply v2.8 UX patch
-        run: python3 scripts/v28_patch.py
-      - name: Apply v2.9 login fix
-        run: python3 scripts/v29_patch.py
-      - name: Apply v3.0 account data patch
-        run: python3 scripts/v30_patch.py
-      - name: Apply v3.1 API diagnostics
-        run: python3 scripts/v31_patch.py
-      - name: Apply v3.2 vehicle UI and smart categories
-        run: python3 scripts/v32_patch.py
-      - name: Apply v3.3 player recommendation patch
-        run: python3 scripts/v33_patch.py
-      - name: Apply v3.5 driving UI and smart recommendation patch
-        run: python3 scripts/v35_patch.py
-      - name: Apply v3.6 channel, subscription and comments patch
-        run: python3 scripts/v36_patch.py
-      - name: Apply v3.6 player initialization fix
-        run: python3 scripts/v36_fix.py
-      - name: Apply v3.7 direct QR login patch
-        run: python3 scripts/v37_patch.py
-      - name: Apply v3.7 full-width playback and home feed fix
-        run: python3 scripts/v37_ui_fix.py
-      - name: Apply v3.9 browsing and comment authorization fixes
-        run: python3 scripts/v39_patch.py
-      - name: Apply v3.9.1 device OAuth scope fix
-        run: python3 scripts/v391_fix.py
-      - name: Apply v4.0 large-screen content rails
-        run: python3 scripts/v40_patch.py
-      - name: Apply v4.1 C16 large-screen UI
-        run: python3 scripts/v41_patch.py
-      - name: Apply v4.2 interaction polish
-        run: python3 scripts/v42_patch.py
-
       - name: Build debug APK
         run: gradle :app:assembleDebug --stacktrace
 
       - name: Prepare artifact
-        run: cp app/build/outputs/apk/debug/app-debug.apk C16YouTube-v4.2-gallery3d.apk
+        run: cp app/build/outputs/apk/debug/app-debug.apk C16YouTube-v4.3-gallery3d.apk
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: C16YouTube-v4.2-gallery3d-apk
-          path: C16YouTube-v4.2-gallery3d.apk
+          name: C16YouTube-v4.3-gallery3d-apk
+          path: C16YouTube-v4.3-gallery3d.apk
           retention-days: 30
