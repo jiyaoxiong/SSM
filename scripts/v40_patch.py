@@ -9,7 +9,6 @@ css = r'''.homeRailSectionV40{position:relative;margin:28px 0 10px}.homeRailHead
 if '.homeRailSectionV40{' not in s:
     s = s.replace('</style><script>', css + "</style><script>function scrollHomeRail(id){var e=document.getElementById(id);if(e)e.scrollBy({left:e.clientWidth*.86,behavior:'smooth'})}", 1)
 
-# Helper for reusable horizontal rails.
 marker = '    private fun showHome() {'
 helper = r'''    private fun homeRailHtmlV40(title: String, meta: String, id: String, items: List<Video>): String {
         if (items.isEmpty()) return ""
@@ -31,8 +30,9 @@ if 'private fun homeRailHtmlV40' not in s:
         raise SystemExit('v4.0 patch failed: showHome marker missing')
     s = s.replace(marker, helper + marker, 1)
 
-# Replace home with a TV/car-oriented multi-rail feed while keeping the approved hero and category chips.
-pattern = r'    private fun showHome\(\) \{.*?\n    \}\n\n    private fun showCategory'
+# Replace ONLY showHome. v3.2 inserts categoryQuery/matchesCategory/fetchCategoryAsync
+# between showHome and showCategory; preserve those helpers.
+pattern = r'    private fun showHome\(\) \{.*?\n    \}\n\n    private fun categoryQuery'
 replacement = r'''    private fun showHome() {
         currentVideoId = null
         currentCategory = "推荐"
@@ -72,19 +72,17 @@ replacement = r'''    private fun showHome() {
         load(shell("home", body))
     }
 
-    private fun showCategory'''
+    private fun categoryQuery'''
 s2, n = re.subn(pattern, replacement, s, count=1, flags=re.S)
 if n != 1:
     raise SystemExit(f'v4.0 patch failed: showHome matches={n}')
 s = s2
 
-# Make subscribed-channel cards clickable now that real channel pages exist.
 old = "<div class='channelCard'>${if (c.avatar.isNotBlank()) \"<img src='${escAttr(c.avatar)}'>\" else \"<div class='avatar' style='margin:auto;width:72px;height:72px'></div>\"}<b>${esc(c.title)}</b><span>已订阅</span></div>"
 new = "<a class='channelCard' href='c16://channel?name=${Uri.encode(c.title)}'>${if (c.avatar.isNotBlank()) \"<img src='${escAttr(c.avatar)}'>\" else \"<div class='avatar' style='margin:auto;width:72px;height:72px'></div>\"}<b>${esc(c.title)}</b><span>已订阅 · 查看频道 ›</span></a>"
 if old in s:
     s = s.replace(old, new, 1)
 
-# Visible labels.
 s = s.replace('C16 YouTube v3.9.1', 'C16 YouTube v4.0')
 s = s.replace('v3.9.1.40056', 'v4.0.40057')
 s = s.replace('C16 YouTube v3.9', 'C16 YouTube v4.0')
