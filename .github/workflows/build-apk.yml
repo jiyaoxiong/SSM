@@ -44,15 +44,18 @@ jobs:
       - name: Apply v4.8 Media Integrity diagnostics and fallback
         run: python3 scripts/v48_patch.py
 
+      - name: Apply v4.9 dynamic car home
+        run: python3 scripts/v49_patch.py
+
       - name: Build debug APK
         run: gradle :app:assembleDebug --stacktrace
 
       - name: Prepare artifact
-        run: cp app/build/outputs/apk/debug/app-debug.apk C16YouTube-v4.8-gallery3d.apk
+        run: cp app/build/outputs/apk/debug/app-debug.apk C16YouTube-v4.9-gallery3d.apk
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: C16YouTube-v4.8-gallery3d-apk
-          path: C16YouTube-v4.8-gallery3d.apk
+          name: C16YouTube-v4.9-gallery3d-apk
+          path: C16YouTube-v4.9-gallery3d.apk
           retention-days: 30
