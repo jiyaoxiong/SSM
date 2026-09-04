@@ -50,6 +50,9 @@ jobs:
       - name: Apply v5.0 feature completion
         run: python3 scripts/v50_patch.py
 
+      - name: Fix v5.1 patch script
+        run: python3 scripts/v51_script_fix.py
+
       - name: Apply v5.1 subscription and channel UX
         run: python3 scripts/v51_patch.py
 
