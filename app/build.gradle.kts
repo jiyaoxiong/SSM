@@ -4,15 +4,15 @@ plugins {
 }
 
 android {
-    namespace = "com.android.printspooler"
+    namespace = "com.android.gallery3d"
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "com.android.printspooler"
+        applicationId = "com.android.gallery3d"
         minSdk = 28
         targetSdk = 35
-        versionCode = 999000001
-        versionName = "99.0-c16"
+        versionCode = 40031
+        versionName = "1.1.40031"
     }
 
     buildTypes {
