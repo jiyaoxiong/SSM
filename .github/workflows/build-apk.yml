@@ -54,16 +54,18 @@ jobs:
         run: python3 scripts/v37_ui_fix.py
       - name: Apply v3.9 browsing and comment authorization fixes
         run: python3 scripts/v39_patch.py
+      - name: Apply v3.9.1 device OAuth scope fix
+        run: python3 scripts/v391_fix.py
 
       - name: Build debug APK
         run: gradle :app:assembleDebug --stacktrace
 
       - name: Prepare artifact
-        run: cp app/build/outputs/apk/debug/app-debug.apk C16YouTube-v3.9-gallery3d.apk
+        run: cp app/build/outputs/apk/debug/app-debug.apk C16YouTube-v3.9.1-gallery3d.apk
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: C16YouTube-v3.9-gallery3d-apk
-          path: C16YouTube-v3.9-gallery3d.apk
+          name: C16YouTube-v3.9.1-gallery3d-apk
+          path: C16YouTube-v3.9.1-gallery3d.apk
           retention-days: 30
