@@ -58,16 +58,18 @@ jobs:
         run: python3 scripts/v391_fix.py
       - name: Apply v4.0 large-screen content rails
         run: python3 scripts/v40_patch.py
+      - name: Apply v4.1 C16 large-screen UI
+        run: python3 scripts/v41_patch.py
 
       - name: Build debug APK
         run: gradle :app:assembleDebug --stacktrace
 
       - name: Prepare artifact
-        run: cp app/build/outputs/apk/debug/app-debug.apk C16YouTube-v4.0-gallery3d.apk
+        run: cp app/build/outputs/apk/debug/app-debug.apk C16YouTube-v4.1-gallery3d.apk
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: C16YouTube-v4.0-gallery3d-apk
-          path: C16YouTube-v4.0-gallery3d.apk
+          name: C16YouTube-v4.1-gallery3d-apk
+          path: C16YouTube-v4.1-gallery3d.apk
           retention-days: 30
