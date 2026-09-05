@@ -70,13 +70,15 @@ jobs:
         run: python3 scripts/v62_patch.py
       - name: Apply v6.2 source-aware recommendations
         run: python3 scripts/v62_recommend_fix.py
+      - name: Apply v6.3 portrait Shorts browsing
+        run: python3 scripts/v63_patch.py
       - name: Build debug APK
         run: gradle :app:assembleDebug --stacktrace
       - name: Prepare artifact
-        run: cp app/build/outputs/apk/debug/app-debug.apk C16YouTube-v6.2-gallery3d.apk
+        run: cp app/build/outputs/apk/debug/app-debug.apk C16YouTube-v6.3-gallery3d.apk
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: C16YouTube-v6.2-gallery3d-apk
-          path: C16YouTube-v6.2-gallery3d.apk
+          name: C16YouTube-v6.3-gallery3d-apk
+          path: C16YouTube-v6.3-gallery3d.apk
           retention-days: 30
