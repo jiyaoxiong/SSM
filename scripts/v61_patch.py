@@ -4,6 +4,12 @@ import re
 p=Path('app/src/main/java/com/c16/video/MainActivity.kt')
 s=p.read_text(encoding='utf-8')
 
+# V6.1 uses JSONArray for persisted account/home video caches.
+if 'import org.json.JSONArray' not in s:
+    anchor='import org.json.JSONObject\n'
+    if anchor not in s: raise SystemExit('v6.1 JSONObject import anchor missing')
+    s=s.replace(anchor,anchor+'import org.json.JSONArray\n',1)
+
 # V6.1: data completeness. Do not touch the proven WebView/IFrame/Media Integrity player core.
 # Goals: no artificial 50-video ceiling, auto-continue pagination on collection pages,
 # category pagination, complete subscription traversal, and home subscription sync across all channels.
