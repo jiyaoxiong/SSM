@@ -62,15 +62,18 @@ jobs:
       - name: Apply v5.3 subscription gallery redesign
         run: python3 scripts/v53_patch.py
 
+      - name: Apply v5.4 full pagination and load-more
+        run: python3 scripts/v54_patch.py
+
       - name: Build debug APK
         run: gradle :app:assembleDebug --stacktrace
 
       - name: Prepare artifact
-        run: cp app/build/outputs/apk/debug/app-debug.apk C16YouTube-v5.3-gallery3d.apk
+        run: cp app/build/outputs/apk/debug/app-debug.apk C16YouTube-v5.4-gallery3d.apk
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: C16YouTube-v5.3-gallery3d-apk
-          path: C16YouTube-v5.3-gallery3d.apk
+          name: C16YouTube-v5.4-gallery3d-apk
+          path: C16YouTube-v5.4-gallery3d.apk
           retention-days: 30
