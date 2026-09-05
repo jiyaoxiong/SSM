@@ -56,13 +56,15 @@ jobs:
         run: python3 scripts/v56_finish_patch.py
       - name: Apply v5.7 clean C16 home UI
         run: python3 scripts/v57_patch.py
+      - name: Apply v5.8 navigation and library polish
+        run: python3 scripts/v58_patch.py
       - name: Build debug APK
         run: gradle :app:assembleDebug --stacktrace
       - name: Prepare artifact
-        run: cp app/build/outputs/apk/debug/app-debug.apk C16YouTube-v5.7-gallery3d.apk
+        run: cp app/build/outputs/apk/debug/app-debug.apk C16YouTube-v5.8-gallery3d.apk
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: C16YouTube-v5.7-gallery3d-apk
-          path: C16YouTube-v5.7-gallery3d.apk
+          name: C16YouTube-v5.8-gallery3d-apk
+          path: C16YouTube-v5.8-gallery3d.apk
           retention-days: 30
