@@ -11,78 +11,58 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: '17'
-
       - name: Set up Android SDK
         uses: android-actions/setup-android@v3
-
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.9'
-
       - name: Apply v4.3 compile fix
         run: python3 scripts/v43_compile_fix.py
-
       - name: Apply v4.4 account and library upgrade
         run: python3 scripts/v44_patch.py
-
       - name: Apply v4.5 YouTube account data sync
         run: python3 scripts/v45_patch.py
-
       - name: Apply v4.6 player reliability and fullscreen
         run: python3 scripts/v46_patch.py
-
       - name: Apply v4.7 IFrame API and player identity upgrade
         run: python3 scripts/v47_patch.py
-
       - name: Apply v4.8 Media Integrity diagnostics and fallback
         run: python3 scripts/v48_patch.py
-
       - name: Apply v4.9 dynamic car home
         run: python3 scripts/v49_patch.py
-
       - name: Apply v5.0 feature completion
         run: python3 scripts/v50_patch.py
-
       - name: Fix v5.1 patch script
         run: python3 scripts/v51_script_fix.py
-
       - name: Apply v5.1 subscription and channel UX
         run: python3 scripts/v51_patch.py
-
       - name: Apply v5.2 UI and data consistency fixes
         run: python3 scripts/v52_patch.py
-
       - name: Apply v5.3 subscription gallery redesign
         run: python3 scripts/v53_patch.py
-
       - name: Apply v5.4 full pagination and load-more
         run: python3 scripts/v54_patch.py
-
       - name: Apply v5.5 V4.2-reference large-screen UI
         run: python3 scripts/v55_patch.py
-
       - name: Apply v5.6 history sidebar channel and recommendation fixes
         run: python3 scripts/v56_patch.py
-
       - name: Apply v5.6 final player typography balance
         run: python3 scripts/v56_finish_patch.py
-
+      - name: Apply v5.7 clean C16 home UI
+        run: python3 scripts/v57_patch.py
       - name: Build debug APK
         run: gradle :app:assembleDebug --stacktrace
-
       - name: Prepare artifact
-        run: cp app/build/outputs/apk/debug/app-debug.apk C16YouTube-v5.6-gallery3d.apk
-
+        run: cp app/build/outputs/apk/debug/app-debug.apk C16YouTube-v5.7-gallery3d.apk
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: C16YouTube-v5.6-gallery3d-apk
-          path: C16YouTube-v5.6-gallery3d.apk
+          name: C16YouTube-v5.7-gallery3d-apk
+          path: C16YouTube-v5.7-gallery3d.apk
           retention-days: 30
